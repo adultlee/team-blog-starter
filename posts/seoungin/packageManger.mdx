@@ -1,0 +1,664 @@
+---
+title: ex) package manager에 관하여
+description: 본 글은 테스트 문서 입니다.
+author: seoungin
+publishedAt: 2023-02-24
+---
+
+#### 이런 분들께 이 글을 추천합니다.
+
+> 1. 이유를 모른채 `node_modules`를 `.gitignore`에 작성하는 분
+> 2. 남들 다 쓴다는 `yarn` 이나 `yarn berry`등을 `사용`하기만 하던 분
+> 3. 이번에야 말로 pm에 대해 어렴풋이나마 학습하고 싶으신 분
+
+#### 이 글의 순서는 다음과 같습니다.
+
+> 1. `node_modules` 를 포함한 프로젝트의 기본적인 요소
+> 2. `npm` 이 구성하는 `node_modules`의 구조
+> 3. `yarn` (classic)이 구성하는 `node_modules`의 구조
+> 4. `pnpm`이 구성하는 `node_modules`의 구조
+> 5. `yarn berry`가 구성하는 `node_modules`의 구조
+> 6. 실제 코드를 통해 실습 및 비교
+
+# 0. 서문
+
+지금까지 저는 프로젝트를 시작하면 습관처럼 아래와 같이 시작하곤 했는데요.
+바로 이 한 줄로 인해서 이 글이 출발하게 되었습니다.
+
+![](https://velog.velcdn.com/images/adultlee/post/6d3e9feb-03db-44a1-b6f4-ad2706e63666/image.png)
+
+<p align="center">익숙한 우리의 `.gitignore`</p>
+
+> 왜 저희는 습관처럼 `node_modules`를 `.gitignore`에 작성했을까요?
+
+이번엔 `node_modules`가 프로젝트에서 가지고 있는 의미에 대해서 해석해보려고 합니다.
+더불어 여러 큰 IT기업들의 개발 블로그의 yarn berry 에 대한 후기들에 대한 의문점이 생겼습니다.
+
+> 예를 들자면, [토스 기술블로그](https://toss.tech/article/node-modules-and-yarn-berry)에서 기술된 `yarn-berry`의 장점들을 보고, 정말 빠른거 맞아? 내가 확인해봐야겠어!
+
+> +) 본 글에서 PM은 `package manager`의 약칭으로 사용할 예정입니다. 혹여나 헷갈리신다면 이에 유의해서 읽어주시길 바랍니다.
+
+# 1. `node_modules`를 포함한 기본적인 프로젝트 요소
+
+![](https://velog.velcdn.com/images/adultlee/post/2ef528f0-74e5-4230-a317-b1217bcb1c7e/image.png)
+
+<p align="center">익숙한 우리의 프로젝트</p>
+
+`node_modules`는 프로젝트에서 사용하는 외부 라이브러리에 대한 패키지를 저장하는 공간입니다.
+즉 프로젝트 내부에서 사용할 수 있는 외부의 코드와 페키지들을 우리의 프로젝트 공간으로 옮겨온 결과물 입니다.
+우리가 일반적으로 사용하던 `npm i react` 를 사용하면 외부의 패키지를 우리의 프로젝트로 가져오는 과정이었던 것입니다.
+
+천천히 그 과정을 살펴보도록 하겠습니다.
+
+```
+// npm init 후 프로젝트에 외부 패키지가 적용되는 과정
+npm init // 초기 프로젝트 셋팅 명령어
+npm i react // npm 이라는 pm을 통해서 react를 우리의 프로젝트에 설치합니다.
+```
+
+#### 1. `npm i react` 에 대해서
+
+일반적으로 사용하는 `react`를 설치하는 명령어 입니다. 여기서 여러가지 변형 형태오 옵션(yarn add , -g를 통한 전역설치 , --save 명령어를 통해 devdependency에 추가) 등등 여러가지가 있지만 우선 지금은 가장 일반적인 형태만을 다뤄봅니다.
+
+```
+npm i react // 가장 일반적인 방법으로 react package를 내 로컬 프로젝트에 설치합니다.
+```
+
+결과는 다음과 같습니다.
+
+![](https://velog.velcdn.com/images/adultlee/post/1f9a142c-238f-4cba-89b2-5a4d6fa54f86/image.png)
+
+신기하게도 여기서 우리는 `npm init`으로 생성된 `package.json`을 제외하고도 두가지 요소가 더 자동생성된 것을 확인할 수 있습니다.
+(제가 지금 사용하는 `npm` 버전은 9.8.1로 글 작성일 기준 가장 최신버전입니다.)
+
+그렇다면 현재 생성된 결과물을 한번 확인해보겟습니다.
+
+#### 2. `package.json` (after npm i react) (npm init으로 생성)
+
+![](https://velog.velcdn.com/images/adultlee/post/999d71a7-002b-45e9-914d-5f5818be537f/image.png)
+
+우리가 사용한 `npm i react`를 사용하게 되면 `package.json` 의 `dependencies`에 저장됩니다. 앞서서 살짝 언급했듯, 이 `package.json` 에서는 `devdependencies`를 비롯하여 여러 속성들이 존재하며, 프로젝트의 내부에서 사용할 여러 페키지 정보를 비롯한 스크립트, 프로젝트에 대한 정보들이 포함되어있습니다. 우리의 글에서는 다루지 않지만 여러 속성들이 존재한다는 점을 알고 가면 좋겠습니다!
+
+#### 3. package-lock.json (after npm i react) (npm i react 이후 자동생성)
+
+![](https://velog.velcdn.com/images/adultlee/post/c8067a57-1c3b-459c-891e-bf48a29a26ee/image.png)
+'
+꽤나 신기하고 유용한 녀석입니다. 파일명에 `lock`이 붙어 있는것으로 보아 무엇인가를 "잠그다" 라는 의미를 가지고 있는것으로 보이는데요, 사실 우리가 앞으로 다룰 `npm @2`나 `npm @3`에 시점에서는 개발되지 않던 요소였으며, `yarn`의 개발 이후 영감을 받아 `npm` 의 문제점을 해소하기 위하여 도입되었습니다. 더 자세한 내용은 뒤의 글에서 다루겠지만 키워드를 먼저 말씀드리자면 `non-deterministically 문제 해결`, `버전 고정` 특회나 `non-deterministically 문제 해결`이 PM에서 어떤 의미를 가지는지에 대해서 기억한다면 좀 더 의미있는 학습이 진행될것이라 생각합니다.
+
+#### 4. node_modules (after npm i react)(npm i react 이후 자동생성)
+
+<p align="center">
+	<img
+		src="https://velog.velcdn.com/images/adultlee/post/4797fa92-915d-4554-a1ab-424ac4860a42/image.png"
+		width="30%"
+		height="30"
+	/>
+</p>
+
+대망의 `node_modules`입니다. 사실 이 글의 모든 핵심이라고 봐도 무방합니다. 이번 글에서도 중점적으로 다루는 내용은 각기 다른 PM들이
+구성하는 `node_modules`의 차이를 분석하는 것이 이 글의 핵심이기 때문입니다.
+
+`node_modules`를 살펴보면 다소 이상한 점이 있습니다.
+
+<p align="center">
+	<img
+		src="https://velog.velcdn.com/images/adultlee/post/096e5758-e312-45e4-a6f9-291a3cbf283b/image.png"
+		width="30%"
+		height="30"
+	/>
+</p>
+다음 요소를 보면, 저희가 설치한 `react`를 제외하고도 몇가지 폴더가 더 작성되어 있는것으로
+보입니다.{" "}
+
+> 분명 우리는 `react`만을 설치했는데 말이죠...
+
+이런 의문은 곧 해결 될겁니다. 하지만 이번에도 키워드를 말씀드리자면 이런 현상을 바로 `유령 의존성(Phantom Dependency)`이라고 부릅니다.
+
+![](https://velog.velcdn.com/images/adultlee/post/49e30310-6865-4b4e-973d-d9b4fec52e4b/image.png)
+
+<p align="center">귀여운 유령을 가져와 보았습니다?</p>
+
+> 얼추 `node_modules`를 비롯해서 프로젝트를 구성하는 여러 요소에 대해서 학습하였습니다.
+> 지금 부터는 `node_modules` 의 큰 구조변화를 보였던 `npm @2` -> `npm @3` -> `yarn (classic)` -> `pnpm` -> `yarn berry` 순서로 학습을 진행할 예정입니다.
+
+# 2. NPM
+
+![](https://velog.velcdn.com/images/adultlee/post/58f1a7c1-da71-4495-86ec-3b8cbfbf7e2b/image.png)
+
+npm 환경에서의 node_modules 의 구조에 대해서 학습합니다.
+
+npm v2 와 npm v3([최신버전 2015년 이후로 stable](https://blog.npmjs.org/post/129378362260/npm-weekly-29-npm-3-out-of-beta-nick-out-of-the))의 주요 변경점에 관하여 작성합니다.
+
+## NPM v2
+
+`npm @2` 는 `npm v3`가 `stable` 되기 전까지 사용되어 왔던 `npm`의 과거의 버전입니다.
+
+`npm v2`에서 의존성 트리를 생성하는 방식을 예를 통해 설명해 보겠습니다. 주어진 상황에서 세 개의 모듈 A, B, C가 있고, A는 B를 v1.0으로 요구하고, C도 B를 요구하지만 v2.0을 요구하는 경우를 가정합니다. 이러한 상황에서 `npm @2`는 어떻게 의존성 트리를 구성할까요?
+
+상황에 따라 다르겠지만, `npm @2`는 폴더 내에 각 패키지의 종속성을 각각 설치하는 방식을 취합니다. 따라서 모듈 A, B, C를 설치하려면 각각의 폴더에 각 패키지의 의존성을 설치합니다.
+
+여기서 주의해야할 것이 있습니다. 바로 `의존성 지옥(Dependency Hell)` 이라고 합니다.
+
+## Dependency Hell
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/3c84d7f1-c46d-4fa5-95de-8a998ff1aae1)
+
+`Dependency Hell`은 소프트웨어 개발 및 관리 과정에서 발생할 수 있는 문제 상황을 나타내는 용어입니다. 이 문제는 의존성 관리 시스템에서 여러 의존성들이 복잡하게 꼬여서 해결하기 어려운 상황을 말합니다. 주로 다음과 같은 상황에서 발생합니다:
+
+1. Version Conflict (버전 충돌): 서로 다른 패키지들이 동일한 패키지에 서로 다른 버전을 요구할 때 발생합니다. 예를 들어, A 패키지가 B 패키지의 v1.0을 요구하고, C 패키지가 B 패키지의 v2.0을 요구할 경우 충돌이 발생합니다.
+
+2. Transitive Dependencies (간접 의존성): 하나의 패키지가 다른 패키지에 의존하며, 다른 패키지가 또 다른 패키지에 의존할 때 발생합니다. 이런 의존성 체인이 복잡하게 꼬일 경우 해결하기 어려운 문제가 생길 수 있습니다.
+
+3. Complex Dependency Graphs (복잡한 의존성 그래프): 여러 개의 패키지들이 복잡하게 얽혀 있을 때, 어떤 패키지를 설치하거나 업데이트하면 다른 패키지들에 영향을 미칠 수 있습니다.
+
+`Dependency Hell`은 소프트웨어의 유지 관리 및 업데이트 과정에서 예측할 수 없는 문제를 야기할 수 있습니다. 이로 인해 버그를 수정하거나 새로운 기능을 추가하는 것이 어려워지며, 개발자들은 시간을 해결책을 찾는 데 쏟아야 할 수 있습니다.
+
+이를 해결하기 위해 `npm @2`에서는 어떤 방식을 사용했을까요? 바로 아래에서 확인할 수 있습니다.
+아래는 `npm @2`에서 해당 `package` 들의 의존성 관계를 해석하여 생성된 `node_modules`입니다.
+
+```
+project/
+├─ node_modules/
+│   ├─ A/
+│   │   ├─ node_modules/
+│   │   │   └─ B@v1.0/
+│   │   └─ package.json (A's dependencies: B@v1.0)
+│   ├─ C/
+│   │   ├─ node_modules/
+│   │   │   └─ B@v2.0/
+│   │   └─ package.json (C's dependencies: B@v2.0)
+└─ package.json (Project's dependencies: A, C)
+```
+
+직관적으로 확인할 수 있듯, `npm @2`에서는 어려운 방식보단 직관적이고 쉬운 방법을 채택했습니다. 의존성관계를 해당 `packages`들에게 모두 남겨둔 것이지요.
+
+위와 같은 폴더 구조 형태로 표현할 수 있으며, 아래는 [npm.github.io](https://npm.github.io/how-npm-works-docs/npm2/how-npm2-works.html) 에서 인용한 도식도 입니다.
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/c067950a-3487-4702-a295-b8ed7f394927)
+
+위의 방식에서 확인할 수 있듯이, `Dependency Hell`을 피하기 위해서, 각각의 모든 package 들에 대해서 모든 의존성을 명시하는 것을 확인할 수 있습니다.
+
+## npm v2 한계
+
+npm v2에는 여러가지 한계가 있습니다.
+
+![](https://velog.velcdn.com/images/adultlee/post/2ec510f4-125b-432a-94f3-78bb188854da/image.png)
+바로 위의 그림이 `npm @2`의 가장 큰 문제점에 대해서 보여주는 도표라고 볼 수 있습니다. 그림과 같이 경우에 따라서는 무한히 중복되는 B v1이 설치 될 수 있습니다.
+
+1. `npm @2`에서는 의존성을 중첩하여 설치하는 방식을 사용했습니다. 이로 인해 여러 모듈이 동일한 패키지의 다른 버전을 중복으로 설치하는 경우가 발생할 수 있습니다. 이로 인해 디스크 공간 낭비와 의존성 관리의 복잡성이 증가할 수 있습니다.
+2. 중첩된 의존성으로 인해 모듈의 크기가 커질 수 있습니다. 여러 모듈이 같은 패키지의 여러 버전을 중복 설치하면 디스크 공간을 비효율적으로 사용하게 됩니다.
+3. `npm @2`의 의존성 관리 방식은 의존성을 중첩 설치하므로 설치 속도가 상대적으로 느릴 수 있습니다. 모든 의존성을 중첩적으로 설치하는 과정이 더 많은 시간을 필요로 합니다.
+
+그렇다면 `npm @2`의 이러한 단점들이 `npm @3`에서는 어떻게 해결 되었고, 그럼에도 가지고 있는 한계지점은 어떤 것이 있을까요?
+
+## NPM v3
+
+`npm @3`는 2015년 5월의 `beta` 버전 릴리즈 이후 4달뒤 9월에 정식 버전으로 [배포](https://blog.npmjs.org/post/129378362260/npm-weekly-29-npm-3-out-of-beta-nick-out-of-the)되었습니다.
+
+`npm @3`는 `npm @2`와는 다른 방식으로 이러한 의존성 문제를 해결하였습니다. 대표적인 키워드는 바로, "`Flat`" 입니다.
+
+### Flat...?
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/89998cc3-a9a4-4107-bd26-6ed095aa2eb0)
+
+Flat을 검색하니 **Flat earth**가 나오는 군요... 그래도 Flat에 대해서 직관적으로 알 수 있으니, 가져와 보았습니다. (~~지구는 평평하죠.~~)
+
+> `npm @3` 의 특징은 바로 "Flat"
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/e6e9f343-982d-45ac-8f9b-ff59e12dd40a)
+위의 사진을 보면 좀 더 이해가 빠를 수 있습니다.
+`NPM @3`에서는 package들을 `가능한` flat하게 만들려고 합니다.
+
+여기서 이런 생각이 들 수도 있습니다. 그렇다면 v2에서 말썽이었던, `Dependency Hell` 문제는 어떻게 해결한거지??
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/091099f8-8a19-4f3b-8973-27419791a2a2)
+
+`npm @3`에서는 다음과 같은 방법으로 해결했습니다. 설치 순서(npm v3에서는 중요한 개념) 에 따라, 현재는 package A 가 package C 보다 먼저 설치 되었는데요, 이때 먼저 Flat하게 top level에 B v1.0이 올라가게 됩니다.
+
+이 또한 tree 구조로 확인해본다면 다음과 같습니다.
+
+```
+project/
+└─ node_modules/
+│  ├─ A/
+│  │   └─ package.json (A's dependencies: B@v1.0)
+│  ├─ B@v1.0/
+│  └─ C/
+│  │   ├─ node_modules/
+│  │   │   └─ B@v2.0/
+│  │   └─ package.json (C's dependencies: B@v2.0)
+└─ package.json (Project's dependencies: A, B@v1.0 ,C)
+```
+
+`npm @2` 에서와 가장 큰 차이점은 `node_modules` 의 top-level에 B 가 등장했다는 것입니다!
+이를 통해서 차후에 B@v1.0가 더 사용될때, 더이상 하위 의존성으로 추가하지 않아도 괜찮습니다.
+
+이를 좀더 그림을 통해서 설명 드리도록 하겠습니다.
+
+### npm v3의 중복 처리 방법
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/49b8c5d1-12d4-44e1-b52d-8d6d7db38c07)
+
+예를 들어 다음과 같은 새로운 의존성을 가진 D 패키지를 우리의 서비스에 추가한다고 생각해 봅시다.
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/770767f6-302e-4f33-bd08-758541a3d9dc)
+그렇다면 다음과 같은 도식도가 만들어집니다!
+혹시 조금 이상하신가요? npm v2의 느낌이 나며 거의 유사하다고 느끼실겁니다.
+맞습니다! npm v3에서는 "가능한" flat하게 만드려 하며 , 불가능한 경우 npm v2의 기능을 사용합니다. 따라서 B v2.0을 top - level로 올릴 수 없으므로, package C 와 마찬가지로 의존성을 하위에 추가합니다.
+
+그렇다면 B v1.0을 의존성으로 가지는 패키지를 추가해보며 개선점을 확인해보도록 하겠습니다.
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/36b5bde7-deb6-4a9c-9539-9a42a970979c)  
+package E는 B v1.0을 의존성으로 가지는 패키지 입니다. 이 또한 저희의 서비스에 추가해보도록 하죠
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/27886705-055e-4e93-86ae-d8733cfefe59)
+
+B v2.0을 추가할때와는 다른 그림이 그려졌습니다. 이는 B v1.0이 이미 top level에 있기 때문에 그려진 도식도 입니다. 따라서 이 경우에도 package A 에서와 마찬가지로 하위 dependency 없이 선언됩니다.
+
+여기서 만약 B v1.0을 B v2.0으로 update 시켜주면 어떻게 될까요?
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/485cbd63-5f59-4dd2-babc-623020728d0a)
+
+해당 서비스 내에서는 B v2.0만 사용하므로 딱봐도 간소화된 package 구조를 가지게 됨을 확인할 수 있습니다.
+
+## npm v3의 한계
+
+어떤가요? 그래도 npm v2에서 보다 많은 개선이 이루어진것처럼 보여집니다.
+무엇보다. memory를 비효율적으로 사용하던 부분이 상당부분 개선이 된것을 확인할 수 있어요.
+하지만 그럼에도 여러가지 한계가 존재 하는데요, 과연 어떤게 있을까요??
+
+### 1. 그럼에도 불구하고 아직도 크기만한 node_modules의 크기
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/bfcb8f24-b366-4030-b313-bcc0bda6789c)  
+[트위터에서 떠도는 node_modules 유머](https://twitter.com/CapiCapitalista/status/1499629249992474626)
+
+다른 글에서 좀 더 설명해 드리겠지만, 아직도 `node_modules`을 flat 하게 했음에도 여전히 무겁습니다. 다수의 상황에서 `node_modules`의막대한 크기로 인해서 CI 등 작업에서 문제가 발생하곤 합니다. 이를 해결하기 위해선 여러가지 해결방법이 고안되었습니다.
+
+> 심지어 `node_modules`를 없애기도...(`yarn berry`)
+
+### 2. 비효율적인 dependency 검색
+
+`node_modules` 내부에서 `dependency`를 찾기 위해서는 [node_modules 로딩 방법](https://nodejs.org/api/modules.html#loading-from-node_modules-folders) 을 통해서 진행됩니다.
+
+다음 글은 `node_modules` 내부에서 `dependency`를 찾기 위한 방법을 설명하고 있습니다.
+간단하게 요약을 하자면
+
+> 1. 현재 위치의 `node_modules`에서 `dependency`를 찾는다.
+> 2. 만약 못찾았다면... 상위 폴더의 `node_modules`를 조사하며, 이 과정을 찾을때 까지 "반복" 합니다.
+
+다음과 같은 `dependency` 검색 방법으로 인해서 복잡한 `node_modules` 구조를 가지는 `npm`의 경우 굉장히 긴 시간을 소요할 수 있습니다.
+
+하지만 오히려 에서 발생 할 수 있는 문제는 `npm @2`에서는 거의 발생하지 않을 수 있습니다. 종속성을 가지는 모든 패키지들에 대해서 현재 패키지가 "모두" 가지고 있기 때문입니다. 비효율적인 디스크 활용방법이 이 경우엔 오히려 유리해진 경우 입니다.
+
+### 3. phantom dependency 출현
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/485cbd63-5f59-4dd2-babc-623020728d0a)
+
+이 도식도는 위에서 `npm @3`의 효율성을 설명드리며 말씀드렸던 도식도 입니다.
+하지만 여기서 설명드릴 요소가 하나더 있습니다. 바로 "유령 의존성"을 의미합니다. 저는 App을 운영하면서 B v2.0을 설치한적이 없지만 마치 설치한것 처럼 사용할 수 있습니다. 이는 바로 flat 하게 옮기는 과정에서 발생한 `phantom dependency`라고 부르는데요, 이를 통해서 코드의 복잡성과 모호함을 늘릴 수 있습니다.
+
+### 4. 상황과 환경마다 다른 node_modules의 구조
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/091099f8-8a19-4f3b-8973-27419791a2a2)
+우리가 위의 예시에서는 `package A` 를 설치한 이후 `package C`를 설치했습니다. 하지만 반대로 진행하게 되면 어떻게 될까요?
+
+![](https://velog.velcdn.com/images/adultlee/post/edcc3023-1a02-4315-8126-b25be49234a5/image.png)
+
+해당 도식도를 설명하기 바로 직전에서는 package A를 먼저 설치 후 package C를 설치 하였는데, 만약 이게 아니라 package C를 먼저 설치했다면, flat하게 만드려하는 npm v3에 따라 top-level에는 **B v1.0이 아닌 B v2.0**이 오게 됩니다.
+
+> 즉 설치 순서에 따라 다른 `node_modules`의 구조를 가지게 됩니다.
+
+> +) 하지만 이 시점에서의 해당 문제는 npm @3에서만 해당합니다. 이후 yarn과 서로 경쟁과 성장을 거듭하며,
+> package-lock.json 이 등장하게 되며 이 문제가 해결되었습니다.
+
+# 3. Yarn (classic)
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/54d08b88-9296-4543-9137-1dc194206074)
+
+`yarn` 은 2016년 이후로 페이스북, 구글 , Exponent 와 같은 회사들의 협력으로 인해서 개발된 새로운 `package manager` 입니다.
+`yarn`을 사용하면 엔지니어들은 여전히 `npm` 레지스트리에 접근할 수 있지만, 패키지를 더 빨리 설치하고 여러 기계에서 일관되게 종속성을 관리하거나 보안이 유지되는 오프라인 환경에서도 사용할 수 있습니다.
+
+## before yarn
+
+패키지 매니저가 없던 시절에는 JavaScript 엔지니어들이 프로젝트에 직접 저장되는 소수의 종속성에 의존하거나 CDN에서 제공되는 것이 일반적이었습니다. 첫 번째 주요 JavaScript 패키지 매니저인 npm은 Node.js가 소개된 직후에 만들어졌으며, 금세 세계에서 가장 인기 있는 패키지 매니저 중 하나가 되었습니다. 새로운 오픈 소스 프로젝트가 수천 개 생성되었고 엔지니어들은 이전보다 더 많은 코드를 공유하게 되었습니다.
+
+그러나 `npm`에도 여전히 여러가지 문제를 포함하고 있었습니다.
+
+다른 기기 및 사용자 간에 종속성을 설치하는 일관성 문제, 종속성을 가져오는 데 걸리는 시간, 일부 종속성에서 코드를 자동으로 실행하는 npm 클라이언트의 실행 방식과 관련된 보안 문제 등이 발생했습니다. 이러한 문제를 해결하려고 노력했지만, 종종 새로운 문제가 발생하는 결과를 가져왔습니다.
+
+대표적인 문제는 다음과 같은 문제들이 있었습니다.
+
+1. 다른 기기 및 사용자 간의 종속성, 즉 `non-deterministically`(비결정적 - node_modules가 다를 수 있음) 현상
+2. install 하는 과정이 순차적으로 이루어져 오랜 시간이 걸림
+
+그렇다면 `Yarn`에서는 어떻게 문제를 해결했을까요?
+
+## Solution by Yarn
+
+`yarn` 은 `npm v3`의 `node_modules`와 같이 `flat`한 구조를 사용합니다. 하지만 다른점이 추가되었는데요.
+`yarn` 에서는 `non-deterministically(비결정적)` 현상을 해결하기 위해, lock 파일을 제안했습니다.
+이는 설치 순서와 환경, 사용자 간에 발생하는 node_modules 구조의 차이가 발생하는 문제를 해결하기 위해 도입되었으며,
+이 lock 파일 내부에는 패키지의 버전과 의존성 정보가 정확하게 기록된 lock 파일을 사용하여 설치 과정을 예측 가능하게 만듭니다. 이로 인해 의존성 충돌을 피하고 설치를 빠르게 수행할 수 있도록 하였습니다. (물론 npm 진영에서도 마찬가지로 `npm @5`부터는 `package-lock.json` 이 도입되었습니다.)
+
+즉, 동일한 lock 파일을 가지고 있는 경우 완벽히 동일한 `node_modules`를 구현할 수 있습니다.
+
+또한 `yarn`에서는 다음의 방법을 통해 빠른 `install`을 구현하려 노력했습니다.
+
+1. `병렬 설치`: 패키지 매니저는 여러 개의 의존성을 동시에 설치하여 시간을 단축시킵니다. 이는 여러 개의 패키지를 한 번에 다운로드하고 설치함으로써 전체 설치 과정을 빠르게 완료할 수 있도록 합니다.
+
+2. 캐싱: 이미 설치한 패키지는 로컬 캐시에 저장되어 다음에 같은 패키지가 필요할 때 재다운로드하지 않도록 합니다. 캐싱은 중복 다운로드를 방지하며, 패키지를 더 빠르게 설치하는 데 도움이 됩니다.
+
+3. 빌드 캐싱: 패키지 설치 중에 필요한 빌드 과정도 캐싱하여 이전에 빌드한 결과를 재사용합니다. 이는 빌드 과정이 더욱 빠르게 이뤄질 수 있도록 합니다.
+4. 보안 : `yarn.lock`을 먼저 확인한 후, `package.json` 과 비교후 문제점이 발생한다면, 바로 종료합니다. 이는 npm에서 발생했던 보안 문제를 해결하기 위한 방법이었습니다.
+
+   결과적으로 Yarn은 다음의 구조를 가집니다.
+
+```
+├── .yarn/   - 1
+│   ├── cache/   - 2
+│   └── releases/   - 3
+│       └── yarn-3.1.1.cjs   - 4
+├── node_modules/   - 5
+├── .yarnrc.yml   - 6
+├── package.json   - 7
+└── yarn.lock   - 8
+```
+
+1.  `.yarn/`: Yarn 관련 설정 및 캐시 디렉토리가 들어 있는 폴더입니다.
+2.  `cache/`: Yarn이 내려받은 패키지와 관련된 캐시 파일이 저장되는 디렉토리입니다.
+3.  `releases/`: Yarn의 다양한 버전과 관련된 파일이 저장되는 디렉토리입니다.
+4.  `yarn-3.1.1.cjs`: Yarn 버전 3.1.1의 실행 파일(cjs 형식)입니다.
+5.  `node_modules/`: 프로젝트에서 사용하는 모든 패키지의 실제 코드가 들어 있는 디렉토리입니다.
+6.  `.yarnrc.yml`: Yarn의 설정 파일인 .yarnrc.yml 파일로, 프로젝트의 Yarn 구성 옵션을 지정할 수 있습니다.
+7.  `package.json`: 프로젝트의 메타 정보와 종속성을 정의하는 파일로, 패키지 버전 및 스크립트 등을 설정할 수 있습니다.
+8.  `yarn.lock`: 패키지 의존성의 정확한 버전을 보장하기 위한 Yarn 락 파일로, 패키지 버전 및 의존성 트리가 고정되어 있습니다.
+
+## yarn vs npm
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/20541db3-1620-4c80-986d-a4cbca672b2f)
+사진에서확인할 수 있듯, 해당 레포에 `gnomon` 라이브러리를 사용하여, 각 패키지의 종료시점을 확인한 결과 `npm` 보다 `yarn`이 더 빠른 속도를 보임을 확인했습니다.
+
+> npm : 37초
+> yarn : 26초
+> 상세한 제한 조건은 해당 [repo](https://github.com/adultlee/study-package-manager)에서 확인하실 수 있습니다.
+
+## 여담
+
+물론 `npm`에서도 이런 `yarn`의 노력에 뒤지지 않고 npm @5 부터는 거의 동일한 기능을 수행할 수 있도록 구현되었습니다.
+하지만 아직도 `yarn`과의 유의미한 속도와 성능차이가 있습니다.
+
+또한 `yarn` 이 @2가 출시되고, classic으로 분류되어 개발이 종료되었다는 점을 인지할 필요가 있습니다!
+
+## Yarn의 한계
+
+`yarn`은 `npm v3`가 가지고 있던 여러가지 문제(속도, 보안) 등등을 획기적으로 해결했습니다만, 아직 `node_modules`를 구현함에 있어서 막대한 시간과 자원을 사용하고 있다는 한계가 있습니다. 이를 해결하기 위해서 새로운 `package manager` 들이 필요성이 대두되었습니다.
+
+# 4. PNPM
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/fc0c96e0-d907-448f-b6a8-5a264c888921)
+
+`pnpm`은 패키지 의존성 관리 도구로, `npm`과 비슷한 목적을 가지고 있지만 독특한 방식으로 패키지를 설치하고 관리합니다. `pnpm`은 "퍼포먼스"와 "디스크 공간 절약"을 중요한 가치로 내세우며, 다른 패키지 매니저들과는 조금 다른 작동 방식을 갖고 있습니다.
+
+1. `flat` 한게 정답이엇을까?
+2. `phantom dependency` 해결
+
+## flat 한게 정답이엇을까?
+
+`npm @3` 와 `yarn`의 `node_modules` 구조는 `Flat` 한 형태로 개발되었습니다. 이 당시에는 획기적인 방법이었습니다. npm v2 가 가지는 고질적인 복잡하고 무거운 `node_modules` 구조가 어느정도 개선되었기 때문이죠. 하지만 아직 산재한 여러가지 문제가 존재했습니다.
+`phantom dependency` 가 존재하거나, 그럼에도 불구하고 아직도 무겁고 느린 `node_modules` 때문이었습니다.
+
+여기서 `pnpm `은 획기적인 생각을 하게 됩니다. 바로 `npm v2`의 구조를 다시한번 사용하는 선택을 한 것이죠.
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/77c0a6f2-0bc6-40fd-aaa0-018433f1ec45)
+다음 사진에서 볼 수 있듯 `pnpm`은 아주 단순한 `node_modules`를 보여줍니다. 여기서 `top-level`에 있는 라이브러리 들은 모두 심볼릭링크로 `.pnpm의` 스토어에 **단 한번만** 설치가 됩니다. 따라서 서로가 서로를 심볼릭 링크로 연결되어 있기에 `pnpm`을 통한 `node_modules`는 `npm`과 `yarn`에 비해 직관적인 폴더 구조를 보여줍니다.
+![](https://velog.velcdn.com/images/adultlee/post/94c387f9-f3bc-42b0-bbaf-ba4f0522d2e9/image.png)
+
+<p align="center">`npm` - `yarn` - `pnpm` 각각의 `node_modules`</p>
+
+아래는 `pnpm`의 모의 구조를 설명드리기 위해서 임의로 작성한 폴더 구조입니다.
+
+```
+node_modules
+└── .pnpm
+    ├── bar@1.0.0
+    │   └── node_modules
+    │       └── bar -> <store>/bar // 본인 스스로를 가지고 있습니다.
+    │           ├── index.js
+    │           └── package.json
+    └── foo@1.0.0
+        └── node_modules
+            └── foo -> <store>/foo
+                ├── index.js
+                └── package.json
+```
+
+`node_modules` 안에 있는 모든 패키지의 모든 파일은 콘텐츠 주소 지정 저장소에 대한 링크입니다. `bar@1.0.0`에 의존하는 `foo@1.0.0` 을 설치했다고 가정해 봅시다. pnpm은 다음과 같이 두 패키지를 모두 `node_modules` 에 링크합니다.
+
+이것은 `node_modules`의 유일한 "실제" 파일입니다. 모든 패키지가 `node_modules`에 링크되면, 중첩된 의존성 그래프 구조를 구축하기 위해 `심볼릭 링크`가 생성됩니다.
+
+눈치채셨겠지만 두 패키지 모두 node_modules 폴더 안의 하위 폴더에 연결되어 있습니다 `foo@1.0.0/node_modules/foo`. 이것은 다음을 위해 필요합니다:
+
+패키지가 자기 자신에 대한 import를 허용합니다. `foo` 는 `require('foo/package.json')` 또는 `import \* as package from "foo/package.json" `를 할 수 있어야 합니다.
+`순환 심볼릭 링크`를 피합니다. 패키지의 의존성은 의존하는 패키지와 동일한 폴더에 있습니다. Node.js의 경우, 의존성이 패키지의 `node_modules` 내부에 있는지 또는 상위 디렉토리의 다른 `node_modules` 에 이 있는지 여부로 차이를 두지 않습니다.
+설치의 다음 단계는 의존성을 심볼릭 링크하는 것입니다. `bar` 는 `foo@1.0.0/node_modules` 폴더에 심볼릭 링크될 겁니다.
+
+```
+node_modules
+└── .pnpm
+    ├── bar@1.0.0
+    │   └── node_modules
+    │       └── bar -> <store>/bar
+    └── foo@1.0.0
+        └── node_modules
+            ├── foo -> <store>/foo
+            └── bar -> ../../bar@1.0.0/node_modules/bar
+```
+
+다음으로, 직접 의존성이 처리됩니다. `foo` 는 루트 `node_modules` 폴더에 심볼릭 링크됩니다. 그 이유는 `foo` 가 프로젝트의 의존성이기 때문입니다.
+
+```
+node_modules
+├── foo -> ./.pnpm/foo@1.0.0/node_modules/foo
+└── .pnpm
+    ├── bar@1.0.0
+    │   └── node_modules
+    │       └── bar -> <store>/bar
+    └── foo@1.0.0
+        └── node_modules
+            ├── foo -> <store>/foo
+            └── bar -> ../../bar@1.0.0/node_modules/bar
+```
+
+이것은 매우 간단한 예입니다. 그러나 이 레이아웃은 의존성 수와 의존성 그래프의 깊이에 관계없이 이 구조를 유지합니다.
+
+`bar` 및 `foo`의 의존성으로` qar@2.0.0` 을 추가해 보겠습니다. 새로운 구조는 다음과 같습니다.
+
+```
+node_modules
+├── foo -> ./.pnpm/foo@1.0.0/node_modules/foo
+└── .pnpm
+    ├── bar@1.0.0
+    │   └── node_modules
+    │       ├── bar -> <store>/bar
+    │       └── qar -> ../../qar@2.0.0/node_modules/qar
+    ├── foo@1.0.0
+    │   └── node_modules
+    │       ├── foo -> <store>/foo
+    │       ├── bar -> ../../bar@1.0.0/node_modules/bar
+    │       └── qar -> ../../qar@2.0.0/node_modules/qar
+    └── qar@2.0.0
+        └── node_modules
+            └── qar -> <store>/qar
+```
+
+보시다시피 그래프가 더 깊어지더라도 (foo > bar > qar), 파일 시스템의 디렉토리 깊이는 여전히 동일합니다.
+
+이 레이아웃은 언뜻 보기에는 이상해보일 수 있지만, `Node`의 모듈 `resolution` 알고리즘과 완벽하게 호환됩니다. 모듈을 확인할 때, `Node`는 심볼릭 링크를 무시하므로, `foo@1.0.0/node_modules/foo/index.js` 에서 bar 가 필요할 때 `Node`는 `foo@1.0.0/node_modules/bar` 에서 bar 를 사용하지 않습니다. 대신, `bar` 는 실제 위치로 확인됩니다(`bar@1.0.0/node_modules/bar`). 결과적으로,` bar` 는 `bar@1.0.0/node_modules`에 있는 의존성을 해결할 수 있습니다.
+
+# phantom dependency 해결
+
+![image](https://github.com/adultlee/study-package-manager/assets/77886826/77c0a6f2-0bc6-40fd-aaa0-018433f1ec45)
+또한 `pnpm`에서는 `npm`과 `yarn`에서와는 다르게 불필요한 페키지들을 `top-level`에 올리지 않아 `phantom dependency`를 해결할 수 있습니다.
+
+# 5. yarn berry
+
+![](https://velog.velcdn.com/images/adultlee/post/2e3be85e-6517-4a8c-85a9-811ad37b81ae/image.png)
+
+`Yarn Berry`는 `Yarn`의 최신 버전입니다. `Yarn`이 원래는 `npm`의 단점을 극복하고자 만들어진 패키지 매니저로 시작했다면, `Berry`는 이제 그 자체로 강력한 패키지 관리 도구입니다. 특히, 이 버전에서는 `Plug'n'Play (PnP)`라고 하는 새로운 패키지 로딩 메커니즘을 도입했습니다. 이번에는 `Yarn Berry`와 PnP에 대해 자세히 알아보겠습니다.
+
+#### 기존 Yarn과 Yarn Berry의 차이점
+
+1. 환경 설정: `Yarn Berry`에서는 `.yarnrc.yml` 형식의 설정 파일을 사용하므로, 더욱 유연한 설정이 가능합니다.
+2. 플러그인 아키텍처: `Yarn Berry`는 새로운 플러그인 아키텍처를 도입해 기능 확장이 더욱 쉬워졌습니다.
+
+   > `Yarn Berry`의 플러그인 아키텍처는 패키지 매니저의 기능을 확장할 수 있도록 설계되었습니다. 예를 들어, 특정 작업을 자동화하거나 새로운 명령어를 추가할 때, `Yarn Berry`의 플러그인 시스템을 사용하면 손쉽게 이러한 기능을 구현할 수 있습니다. 이 플러그인 아키텍처의 도입으로 인해, 커뮤니티나 개발자들이 직접 `Yarn Berry`의 기능을 확장하고 개선할 수 있는 여지가 생겼습니다. 예를 들어, 복잡한 모노레포 구조를 관리할 수 있는 추가 명령어나, 특정 클라우드 서비스와 연동하는 기능 등을 플러그인 형태로 쉽게 추가할 수 있습니다. 이렇게 되면, `Yarn Berry`를 사용하는 개발자나 팀은 자신들의 요구 사항에 맞게 맞춤형 기능을 쉽게 추가할 수 있게 되어, 프로젝트의 효율성과 생산성이 향상됩니다. [토스 yarn plugin repo ](https://github.com/toss/yarn-plugin-workspace-since)에서는 workspace를 관리하는 플러그인을 직접 개발해 사용중입니다.
+
+3. `PnP (Plug'n'Play)`: `Yarn Berry`에서 가장 큰 변화는 `PnP 패키지 관리 `메커니즘의 도입입니다. 이로 인해 `node_modules` 디렉터리의 필요성이 사라지고, 디스크 공간과 성능이 크게 향상됩니다. [yarn berry pnp 설명](https://yarnpkg.com/features/pnp)
+4. `Zero-Installs`: `Yarn Berry`는 `Zero-Installs` 기능을 통해 레포지토리에 설치된 패키지를 캐싱, 이를 통해 별도의 설치 과정 없이 `바로` 사용할 수 있습니다.
+
+### Plug'n'Play (PnP): 작동 원리
+
+`Yarn Berry`의 `Plug'n'Play (PnP)`는 이름 그대로 "플러그 앤 플레이"를 의미합니다. 일반적으로 플러그 앤 플레이 기술은 하드웨어를 컴퓨터에 연결하면 자동으로 인식되어 사용할 수 있는 기능을 의미하는데,` Yarn`의 `PnP`에서도 이와 유사한 개념을 차용하고 있습니다. 패키지를 "플러그"해놓으면 바로 사용할 수 있으며, 복잡한 설정이나 추가 작업 없이도 의존성을 해결합니다.
+
+#### PnP의 작동 원리 상세
+
+![](https://velog.velcdn.com/images/adultlee/post/a32e3f5c-d346-4ade-acae-f1c0eb48ef54/image.png)
+[토스 기술블로그](https://toss.tech/article/node-modules-and-yarn-berry)에서 처럼 `.pnp.cjs`에서 react를 찾아보았습니다. 다음과 같이 `react`에 대한 상세한 정보가 보이며, `.yarn`의 어느 위치에 `cache`형태로 저장되어있는지 아주 쉽게확인 할 수 있었습니다. 아래는 `pnp`의 상세한 작동 원리를 표현합니다.
+
+1. `.pnp.js` 파일: `Yarn`은 `.pnp.js` 파일을 생성하여 프로젝트 내의 모든 패키지와 그 패키지들의 의존성에 대한 정보를 저장합니다. 이는 일종의 "맵"이며, `Node.js`가 이 파일을 통해 패키지를 어떻게 로드할지 알게 됩니다.
+
+2. 플러그 앤 플레이 로더: `Yarn`은 자체적인 로더를 통해 패키지를 로드합니다. 이로 인해 `node_modules` 폴더가 필요 없어지며, 의존성 관리가 단순화됩니다.
+
+3. `Virtual File System (VFS)`: 실제 파일이 디스크에 저장되지 않고도, `.pnp.js` 파일을 통해 가상의 파일 시스템을 생성할 수 있습니다. 이 가상의 파일 시스템은 실제 파일 시스템처럼 동작하지만, 디스크 공간을 차지하지 않습니다.
+
+#### 성능과 효율성
+
+`전통적인(yarn) node_modules` 폴더 구조
+
+```
+my_project/
+├── node_modules/
+│   ├── lodash/
+│   ├── express/
+│   └── ...
+├── package.json
+└── package-lock.json
+```
+
+`Yarn PnP` 폴더 구조
+
+```
+
+my_project/
+├── .pnp.js (또는 .pnp.cjs)
+├── .yarn/
+│   ├── cache/
+│   └── ...
+├── package.json
+├── .yarnrc.yml
+└── yarn.lock
+```
+
+위는 `npm`을 비롯한 다른 `node` 페키지와의 비교하는 폴더구조를 적어보앗습니다.
+
+#### yarn-berry의 강점
+
+1. 설치 시간: 기존의 `Yarn`이나 `npm`에서는 `node_modules` 폴더를 생성하고 그 안에 패키지를 설치합니다. 이 과정에서 여러 개의 작은 파일을 다루게 되므로 설치 시간이 오래 걸립니다. 그러나 `PnP`는 `.pnp.js` 하나로 모든 것을 관리하므로 설치 시간이 대폭 줄어듭니다.
+
+2. 디스크 공간: `node_modules` 방식은 동일한 패키지를 여러 프로젝트에서 별도로 설치해야 하므로 디스크 공간을 많이 차지합니다. PnP는 패키지를 중앙화된 캐시에서 관리하기 때문에 이러한 문제를 해결합니다.
+
+### zero install
+
+`Yarn Berry`의 "Zero-Installs" 기능은 이름에서 알 수 있듯이, 의존성 설치 없이 프로젝트를 바로 시작할 수 있게 해줍니다. 이 기능은 크게 두 가지 주요 이점을 제공합니다:
+
+1. 시간 절약: 의존성 설치 과정을 거치지 않아도 되므로, 새로운 환경에서 프로젝트를 빠르게 시작할 수 있습니다.
+2. 일관성: 의존성이 프로젝트에 미리 "봉인"되어 있기 때문에, 다른 개발자나 CI/CD 환경에서도 동일한 의존성을 보장받을 수 있습니다.
+
+#### 작동 원리
+
+1. 의존성 캐싱: 첫 설치 시에 `Yarn`은 `.yarn/cache` 디렉토리에 의존성 패키지를 캐시합니다.
+2. `.pnp.js` 파일: `Yarn Berry`의 `PnP (Plug'n'Play)` 기능을 통해 생성된 `.pnp.js` 파일이 프로젝트에 포함됩니다. 이 파일은 의존성 정보를 담고 있어서, `Node.js`가 패키지를 어떻게 로드할지 알 수 있습니다.
+3. 버전 관리에 캐시 포함: `.yarn/cache` 디렉토리와 `.pnp.js` 파일을 `Git` 같은 버전 관리 시스템에 포함시킵니다. 이렇게 하면 다른 개발자나 `CI/CD` 환경에서는 `yarn install`을 실행할 필요가 없습니다.
+
+하지만 어떤 멋진 개발자 분께서는 일반적인 npm환경에서도 node_modules를 **버전 관리 시스템에 포함** 하여 `zero-install`을 수행하려 하는데, 흥미로운 접근법이라 추가해봅니다. [node_modules도 git에서도 관리하면 어떨까?](https://yceffort.kr/2021/12/add-node_modules-in-git)
+
+### yarn patch
+
+`yarn berry`의 유용한 기능 중 하나는 `patch`를 이용한 다양한 기능입니다. 다음은 [직방기술블로그](https://medium.com/zigbang/yarn-patch-%ED%8C%A8%ED%82%A4%EC%A7%80%EB%A5%BC-%EC%88%98%EC%A0%95%ED%95%B4%EC%84%9C-%EC%82%AC%EC%9A%A9%ED%95%B4%EB%B3%BC-%EA%B9%8C-ec2019b1fdce) 에서 `yarn patch`를 이용하여 실패한 테스트 코드에 대해서 오류를 잘 확인하기 위해서 사용하고 있습니다.
+
+### +) yarn-berry는 yarn-classic 위에서 동작한다구?
+
+[[Yarn berry] Yarn Berry 환경에 대한 이해도 높이기](https://helloinyong.tistory.com/343) `yarn-berry`의 환경에 대해서 깊게 실습해보신 분의 글입니다. 제가 확인해보진 않아, 정확도를 판단하긴 힘드나. 이 글을 참고로 학습해보시며 이 글을 검증해보는것은 어떨까 싶어서 추가해 보았습니다.
+
+# 6. 실제 실습을 통한 실제 확인
+
+자 이제 대망의 마지막 단락에 도달하게 되었습니다. 사실 이 모든 공부는 이 한번의 실습을 위함이었습니다
+
+> 꼭 눈으로 확인해보고 싶었거든요! '
+
+[pnpm benchmark](https://pnpm.io/ko/benchmarks)에서 `pnpm`의 성능에 대한 지표를 다음과 같이 공표했습니다.  
+![](https://velog.velcdn.com/images/adultlee/post/a1989e2d-7d08-4333-b619-aee89bc86d1b/image.png)
+물론 `pnpm`의 공식 페이지에서 공개한 만큼 pnpm의 다소 치우쳐진 결과가 나왔을지 모른다는 함리적인 의심이 들긴 하지만 보편적으로, npm과 yarn
+이 `pnpm`과 `yarn berry`에 비해 낮은 성능을 보이는것으로 확인할 수 있었습니다.
+
+다음은 실제 실습 결과물 입니다. 모든 pm이 동일한 `dependency`를 보유하고 있으며, 자세한 설정에 대해서 궁금하시다면 [repo]
+(https://github.com/adultlee/study-package-manager)에 방문해주세요! 혹은 이슈로 수정사항을 말씀해주신다면 적극 반영하겠습니다!
+
+## node_modules와 lock 파일 모두 제거
+
+다음은 node_modules와 lock 파일 모두 제거한 경우 입니다. 일반적인 경우는 아니지만 초기 아무런 셋팅이 없는 경우 속도
+
+#### NPM : 28.0653초
+
+![](https://velog.velcdn.com/images/adultlee/post/a47cc55d-5dd7-41f9-93cf-e3578ce0bda6/image.png)
+
+#### yarn : 24.7420초
+
+![](https://velog.velcdn.com/images/adultlee/post/1f2a8c6c-dd83-4ae3-b2af-799c9e39de74/image.png)
+
+#### pnpm : 16.1702초
+
+![](https://velog.velcdn.com/images/adultlee/post/e3cd614a-72f5-4897-b8d6-47f9116dbf4f/image.png)
+
+#### yarn-berry - node_modules를 제거 하지 않습니다.
+
+## node_modules만 제거(일반적인 버전관리시스템인 경우)
+
+다음은 node_modules만 제거한, 버전관리 시스템에만 올라간 파일로만 페키지를 재 구성하는 경우 입니다.
+
+#### NPM : 9.2617초
+
+![](https://velog.velcdn.com/images/adultlee/post/68eff50d-a3ee-439d-b557-9ee2befaef2d/image.png)
+
+#### yarn : 8.8993초
+
+![](https://velog.velcdn.com/images/adultlee/post/bf8a5135-90fd-4783-b9fc-2ae2b9fc694e/image.png)
+
+#### pnpm : 11.1695초
+
+![](https://velog.velcdn.com/images/adultlee/post/72020de0-4b6a-4e48-b886-d2b6edc4371f/image.png)
+
+#### yarn-berry : 0.6344초
+
+![](https://velog.velcdn.com/images/adultlee/post/9fff50a0-47bb-45e5-aac8-e0fec451c242/image.png)
+
+> 제가 위에서 봤던데로... 역시나 압도적인 성능을 가지고 있습니다. 토스에서 기술한데로 말이죠... 반전이 있기를 바랬지만 아쉽게도 이번은 아니었습니다! (여기서 사실 압도적인 성능이 일어난 까닭은, yarn-berry는 사실상 node_modules를 압축해서 버전관리 시스템에서 관리하기 때문인데요. 일반적인 node 프로젝트의 node_modules도 버전관리 시스템에서 관리한다면 "속도"는 비슷할 수 있습니다. 하지만 프로젝트 관리와 규모에서 좋은 평가를 받기 어려울 수 있습니다.)
+
+# 결론
+
+제가 생각하던것 만큼 `pnpm`의 벤치마크에서 제시한 성능이 그대로 실행되지는 않았습니다.
+오히려 `node_modules`만 제거한 상태에서 `package-lock.json` 즉 `lock` 파일만 가지고 구성함에 있어서는 일부 시행에 있어서는 `pnpm`이 부분적으로 더 느리기까지 했습니다.
+하지만 그 밖에는 어느정도 예상한 지표를 가지고 구현이 되었으며, 실제로 `pm` 별로 구성되는 `node_modules`를 비롯한 프로젝트의 기본구조에 대해서 깊게 학습하게 되었습니다.
+아쉽지만, 우선 여기서 글을 멈추고 제가 놓친것들을(환경을 완벽하게 통제해 변인을 모두 확인) 발견하기 위한 공부를 떠나보려고 합니다.
+
+다소 두서 없는 글이긴 하지만 누군가 한명이라도 즐겁게 읽어주신다면, 이 또한 의미있으리라 생각합니다! 모두들 즐거운 하루되시길😊
+
+# Reference
+
+- [npm.github.io](https://npm.github.io/how-npm-works-docs/npm2/how-npm2-works.html)
+- [npm docs](https://blog.npmjs.org/post/129378362260/npm-weekly-29-npm-3-out-of-beta-nick-out-of-the)
+- [직방 기술블로그](https://medium.com/zigbang/%ED%8C%A8%ED%82%A4%EC%A7%80-%EB%A7%A4%EB%8B%88%EC%A0%80-%EA%B7%B8%EA%B2%83%EC%9D%B4-%EA%B6%81%EA%B8%88%ED%95%98%EB%8B%A4-5bacc65fb05d)
+- [토스 기술블로그](https://toss.tech/article/node-modules-and-yarn-berry)
+- [Yarn 공식 블로그](https://engineering.fb.com/2016/10/11/web/yarn-a-new-package-manager-for-javascript/)
+- [npm vs yarn vs pnpm](https://yceffort.kr/2022/05/npm-vs-yarn-vs-pnpm#%EB%A7%8E%EC%9D%80-%ED%98%81%EB%AA%85%EC%9D%84-%EA%B0%80%EC%A0%B8%EC%98%A8-yarn-classic)
+- [직방기술블로그](https://medium.com/zigbang/yarn-patch-%ED%8C%A8%ED%82%A4%EC%A7%80%EB%A5%BC-%EC%88%98%EC%A0%95%ED%95%B4%EC%84%9C-%EC%82%AC%EC%9A%A9%ED%95%B4%EB%B3%BC-%EA%B9%8C-ec2019b1fdce)
+- [node_modules도 git에서도 관리하면 어떨까?](https://yceffort.kr/2021/12/add-node_modules-in-git)

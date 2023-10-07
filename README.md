@@ -1,34 +1,136 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+<h1 align="center">
+    Team-Blog-Starter
+</h1>
 
-## Getting Started
+<h4 align="center">
+  "The project is a team blog template based on Next.js."
+</h4>
 
-First, run the development server:
+## 🧐 About Team-Blog-starter
 
-```bash
-npm run dev
-# or
-yarn dev
+Team-Blog-starter is a template based on Next.js for writing tech blogs.
+
+Markdown, Code Highlighting in various programming languages, and Katex syntax are supported. Additionally, you can easily add team members and use it.
+
+Start your Team Blog with "Team-Blog-starter"
+
+This project inspired by [zoomkoding-gatsby-blog](<[https://velog.io](https://github.com/zoomkoding/zoomkoding-gatsby-blog)>),
+
+## [Live Demo](https://team-blog-starter.vercel.app/)
+
+## Stack
+
+- Next.js
+- contentLayer
+- styled-components
+- framer-motion
+- redux
+
+## Features
+
+- Markdown
+- Code Highlighting
+- Katex Syntax
+- Dark Mode (Responsive to the settings of the OS)
+- Member DetailPage
+- Smooth UI using Framer Motion
+- Responsive Web
+
+Getting started your blog with Team-Blog-Starter by following steps below. It's very easy 😉.
+
+## 1. Clone Project
+
+> Make sure you have **node.js** installed on your computer.
+
+```
+$ git clone https://github.com/adultlee/team-blog-starter.git
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 2. Start dev server
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```
+$ cd my-team-blog
+$ pnpm i
+$ pnpm run dev
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.tsx`.
+## 3. Write meta-config.js
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+```javascript
+module.exports = {
+	teamName: "TemaName", // write your Team Name.
+	// write your Team Description.
+	teamDescription:
+		"TeamBlog에 대한 설명입니다. \n 여기에는 현재 팀이 진행할 설명에 대해서 기술되어있습니다.",
+	githubLink: "https://github.com/adultlee", // write your github link.
+	members: [
+		// write your Members Data.
+		{
+			name: "member1",
+			description: "member1에 대한 한줄 소개",
+			githubLink: "https://github.com/adultlee",
+		},
+		{
+			name: "member2",
+			description: "member2에 대한 한줄 소개",
+			githubLink: "https://github.com/adultlee",
+		},
+		{
+			name: "member3",
+			description: "member3에 대한 한줄 소개",
+			githubLink: "https://github.com/adultlee",
+		},
+		{
+			name: "member4",
+			description: "member4에 대한 한줄 소개",
+			githubLink: "https://github.com/adultlee",
+		},
+		// { // 추가적인 인원에 대한 정보를 작성합니다.
+		//   name: 'member1',
+		//   description: 'member1에 대한 한줄 소개',
+		//   githubLink: 'https://github.com/adultlee',
+		// },
+	],
+};
+```
 
-## Learn More
+team-blog-starter provides a configuration file called `meta-config.js`. In this root
 
-To learn more about Next.js, take a look at the following resources:
+Configure `meta-config.js` to suit your blog.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 4. Add your content
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+Markdown content is in `./posts`. You can write and add your articles.
 
-## Deploy on Vercel
+## 5. Cutomize
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+You can customize your own gatsby-starter-hoodie by referring to the following file structure 🙊.
+
+```
+├── node_modules
+├── posts
+│   └── member1 // members articles are here
+│   └── member2
+│   └── member3
+├── public
+└── src
+    ├── assets
+    ├── components
+    │   └── Common
+    │   └── Layout
+    │   └── Modules
+    │   └── Pages
+    │   └── Providers
+    │   ...
+    ├── constants
+    ├── hooks
+    ├── enums
+    ├── libs
+    ├── pages // page components are here
+    ├── stores
+    ├── styles
+    ├── types
+    └── utils
+```
