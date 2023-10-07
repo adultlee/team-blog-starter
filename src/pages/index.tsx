@@ -1,10 +1,4 @@
-import { allPosts } from 'contentlayer/generated';
-import { useMDXComponent } from 'next-contentlayer/hooks';
+import { MainPage } from "@/components/Pages/MainPage/MainPage";
 
-export default function Home() {
-  const MDXComponent = useMDXComponent(allPosts[0].body.code);
+export default MainPage
 
-  return (
-    <MDXComponent />
-  );
-}
