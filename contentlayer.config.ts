@@ -24,7 +24,6 @@ export const Post = defineDocumentType(() => ({
 			required: true,
 		},
 	},
-	// ...computedFields
 }));
 
 const contentSource = makeSource({
