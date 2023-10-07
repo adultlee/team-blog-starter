@@ -9,9 +9,9 @@ const StyledH1 = styled(motion.h1)`
 `;
 const FramerH1: React.FC = ({ children }: any) => (
 	<StyledH1
-		initial={{ x: -30, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledH1>
@@ -23,9 +23,9 @@ const StyledH2 = styled(motion.h2)`
 `;
 const FramerH2: React.FC = ({ children }: any) => (
 	<StyledH2
-		initial={{ x: -30, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledH2>
@@ -37,9 +37,9 @@ const StyledH3 = styled(motion.h3)`
 `;
 const FramerH3: React.FC = ({ children }: any) => (
 	<StyledH3
-		initial={{ x: -30, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledH3>
@@ -51,9 +51,9 @@ const StyledH4 = styled(motion.h4)`
 `;
 const FramerH4: React.FC = ({ children }: any) => (
 	<StyledH4
-		initial={{ x: -30, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledH4>
@@ -71,7 +71,7 @@ const StyledP = styled(motion.p)`
 
 const FramerP: React.FC = ({ children }: any) => (
 	<StyledP
-		initial={{ x: -50, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
 		transition={{ duration: 0.5 }}
 	>
@@ -115,7 +115,7 @@ const FramerBlockquote: React.FC = ({ children }: any) => (
 	<StyledBlockquote
 		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledBlockquote>
@@ -128,9 +128,9 @@ const StyledLi = styled(motion.li)`
 `;
 const FramerLi: React.FC = ({ children }: any) => (
 	<StyledLi
-		initial={{ x: -30, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledLi>
@@ -142,9 +142,9 @@ const StyledPre = styled(motion.pre)`
 `;
 const FramerPre: React.FC = ({ children }: any) => (
 	<StyledPre
-		initial={{ x: -50, opacity: 0 }}
+		initial={{ x: -10, opacity: 0 }}
 		whileInView={{ x: 0, opacity: 1 }}
-		transition={{ duration: 1 }}
+		transition={{ duration: 0.5 }}
 	>
 		{children}
 	</StyledPre>
