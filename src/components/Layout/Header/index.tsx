@@ -1,9 +1,9 @@
 import styled from "styled-components";
 import ToggleTheme from "./ThemeToggle";
-import Link from "next/link";
 import GithubIcon from "@/components/Common/GithubIcon";
 import meta from "@meta";
 import { SideMenu } from "./SideMenu";
+
 const HeaderWrapper = styled.header`
 	width: 100%;
 	display: flex;

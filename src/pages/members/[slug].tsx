@@ -1,3 +1,3 @@
-import  MemberDetailPage from "@/components/Pages/MemberDetailPage/memberDetailPage";
+import MemberDetailPage from "@/components/Pages/MemberDetailPage/memberDetailPage";
 
-export default MemberDetailPage
+export default MemberDetailPage;
