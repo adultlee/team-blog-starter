@@ -1,1 +1,10 @@
 node_modules
+
+# Next
+.next
+
+#
+
+# env
+
+.env
