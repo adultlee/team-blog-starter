@@ -2,6 +2,7 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import styled from "styled-components";
 import Link from "next/link";
+
 const StyledMenuItem = styled(motion.li)`
 	list-style: none;
 	margin-bottom: 20px;
