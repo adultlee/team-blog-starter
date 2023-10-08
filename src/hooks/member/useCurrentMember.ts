@@ -9,7 +9,7 @@ export default function useCurrentMember(): [
 	const router = useRouter();
 	const curPathMember = router.asPath.slice(1).split("/")[1];
 	const posts = [];
-	console.log(meta, curPathMember);
+
 	let profile = {
 		name: "adultlee",
 		description: "해당 프로필이 발생했다면, profile에 문제가 발생한것입니다.",
