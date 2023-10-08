@@ -46,6 +46,7 @@ const ProfileCardWrapper = styled.div`
 const ProfileImage = styled(Image)`
 	margin-top: 10px;
 	margin-bottom: 20px;
+	object-fit: cover;
 `;
 
 const Name = styled.div`
