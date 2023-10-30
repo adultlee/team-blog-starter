@@ -1,9 +1,6 @@
-import { createGlobalStyle} from 'styled-components';
-import reset from './reset';
-import {
-  lightThemeVariables,
-  darkThemeVariables,
-} from './theme';
+import { createGlobalStyle } from "styled-components";
+import reset from "./reset";
+import { lightThemeVariables, darkThemeVariables } from "./theme";
 
 const GlobalStyle = createGlobalStyle`
   ${reset};

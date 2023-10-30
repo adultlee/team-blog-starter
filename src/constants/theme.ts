@@ -1,1 +1,1 @@
-export const OS_DARK_THEME = '(prefers-color-scheme: dark)' as const;
+export const OS_DARK_THEME = "(prefers-color-scheme: dark)" as const;

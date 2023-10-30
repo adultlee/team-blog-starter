@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import PostCard from "./PostCard";
-// import { IoLogoGithub } from "react-icons/io";
 import { ImFilesEmpty } from "react-icons/im";
+
 const ListWrapper = styled.div`
 	display: flex;
 	flex-direction: column;
